@@ -30,28 +30,34 @@ export default function RegisterForm({ onSuccess, onVerificationNeeded }) {
 
     setLoading(true)
     try {
-      const { data, error: signUpErr } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/register-user`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            password,
             full_name: fullName,
-            phone: phone.replace(/\D/g, ''),
+            phone,
             agency_name: agencyName || null,
-          },
-        },
-      })
+          }),
+        }
+      )
 
-      if (signUpErr) {
-        setError(signUpErr.message)
+      const result = await res.json()
+
+      if (!res.ok || result.error) {
+        setError(result.error || 'Registration failed. Please try again.')
         return
       }
 
-      if (data?.session) {
-        onSuccess()
-      } else {
-        onVerificationNeeded()
-      }
+      await supabase.auth.setSession({
+        access_token: result.session.access_token,
+        refresh_token: result.session.refresh_token,
+      })
+
+      onSuccess()
     } catch {
       setError('Something went wrong. Please try again.')
     } finally {
