@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { BedDouble, Bath, MapPin, MessageCircle } from 'lucide-react'
-import { useLang } from '../App'
+import { useLang } from '../contexts/LangContext'
 import { PLACEHOLDER } from '../lib/placeholderImages'
 
 function formatPrice(price, period) {

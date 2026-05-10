@@ -1,5 +1,5 @@
 import { X, MessageCircle, Phone } from 'lucide-react'
-import { useLang } from '../App'
+import { useLang } from '../contexts/LangContext'
 
 function whatsappUrl(phone, title) {
   const msg = encodeURIComponent(`Hi, I'm interested in your listing: "${title}" on EthioHomes.`)

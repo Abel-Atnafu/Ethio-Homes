@@ -148,6 +148,37 @@ export const strings = {
     footer_rights: '© 2024 EthioHomes. All rights reserved.',
     footer_quick_links: 'Quick Links',
     footer_contact: 'Contact',
+
+    // Toast notifications
+    toast_login_success: 'Welcome back!',
+    toast_logout: 'You have been signed out.',
+    toast_property_posted: 'Property listed successfully!',
+    toast_property_deleted: 'Listing deleted.',
+    toast_toggle_active: 'Listing is now active.',
+    toast_toggle_inactive: 'Listing is now inactive.',
+
+    // Forgot / Reset password
+    forgot_password: 'Forgot password?',
+    forgot_title: 'Reset Password',
+    forgot_desc: "Enter your email and we'll send you a reset link.",
+    forgot_submit: 'Send Reset Link',
+    forgot_success: 'Check your email for the reset link.',
+    reset_password: 'New Password',
+    back_to_login: 'Back to sign in',
+
+    // Empty states
+    no_listings_hint: 'Try adjusting your search filters or check back later.',
+    inactive_listings: 'Inactive Listings',
+
+    // Confirm modal
+    confirm_delete: 'Delete this listing? This cannot be undone.',
+    confirm_yes: 'Delete',
+    confirm_no: 'Cancel',
+
+    // Property count
+    showing_of: 'Showing',
+    of: 'of',
+    properties: 'properties',
   },
 
   am: {
@@ -299,5 +330,36 @@ export const strings = {
     footer_rights: '© 2024 EthioHomes። ሁሉም መብቶች የተጠበቁ ናቸው።',
     footer_quick_links: 'ፈጣን ማስፈንጠሪያዎች',
     footer_contact: 'ያግኙን',
+
+    // Toast notifications
+    toast_login_success: 'እንኳን ደህና መጡ!',
+    toast_logout: 'ወጥተዋል።',
+    toast_property_posted: 'ቤቱ ተለጥፏል!',
+    toast_property_deleted: 'ዝርዝሩ ተሰርዟል።',
+    toast_toggle_active: 'ዝርዝሩ አሁን ንቁ ነው።',
+    toast_toggle_inactive: 'ዝርዝሩ ቆሟል።',
+
+    // Forgot / Reset password
+    forgot_password: 'የይለፍ ቃል ረሳዎ?',
+    forgot_title: 'የይለፍ ቃል ዳግም አስጀምር',
+    forgot_desc: 'ኢሜይልዎን ያስገቡ።',
+    forgot_submit: 'ሊንክ ይላኩ',
+    forgot_success: 'ኢሜይልዎን ይፈትሹ።',
+    reset_password: 'አዲስ የይለፍ ቃል',
+    back_to_login: 'ተመለስ',
+
+    // Empty states
+    no_listings_hint: 'ማጣሪያዎቹን ያስተካክሉ ወይም ቆይተው ይሞክሩ።',
+    inactive_listings: 'ቆሞ ያሉ ዝርዝሮች',
+
+    // Confirm modal
+    confirm_delete: 'ይህን ዝርዝር ትሰርዘዋለህ?',
+    confirm_yes: 'ሰርዝ',
+    confirm_no: 'ተወው',
+
+    // Property count
+    showing_of: 'ማሳያ',
+    of: 'ከ',
+    properties: 'ቤቶች',
   },
 }

@@ -1,5 +1,5 @@
 import { useSearchParams } from 'react-router-dom'
-import { useLang } from '../App'
+import { useLang } from '../contexts/LangContext'
 
 const CITIES = ['Addis Ababa', 'Dire Dawa', 'Bahir Dar', 'Hawassa', 'Adama']
 const PROPERTY_TYPES = ['apartment', 'house', 'villa', 'commercial', 'land']
