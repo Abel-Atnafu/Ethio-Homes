@@ -33,25 +33,18 @@ export default function RegisterForm({ onSuccess, onVerificationNeeded }) {
       const { data, error: signUpErr } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: fullName,
+            phone: phone.replace(/\D/g, ''),
+            agency_name: agencyName || null,
+          },
+        },
       })
 
       if (signUpErr) {
         setError(signUpErr.message)
         return
-      }
-
-      if (data?.user?.id) {
-        const { error: agentErr } = await supabase.from('agents').upsert({
-          id: data.user.id,
-          full_name: fullName,
-          phone: phone.replace(/\D/g, ''),
-          agency_name: agencyName || null,
-          whatsapp: phone.replace(/\D/g, ''),
-        })
-        if (agentErr) {
-          setError('Account created but profile setup failed: ' + agentErr.message)
-          return
-        }
       }
 
       if (data?.session) {
