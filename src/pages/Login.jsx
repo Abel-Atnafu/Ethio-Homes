@@ -1,30 +1,51 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Eye, EyeOff, Mail, Lock, User, Phone, Building2, ArrowRight } from 'lucide-react'
+import {
+  Eye, EyeOff, Mail, Lock, User, Phone,
+  Building2, ArrowRight, Home,
+} from 'lucide-react'
 import { useLang } from '../App'
 import { supabase } from '../lib/supabase'
 
-const HERO_PHOTO = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=900&q=80'
-
-const STATS = [
-  { value: '500+', label: 'Listings' },
-  { value: '200+', label: 'Agents' },
-  { value: '10+', label: 'Cities' },
-]
-
-function InputField({ icon: Icon, label, ...props }) {
+/* ─── tiny reusable input ─── */
+function Field({ icon: Icon, label, hint, right, ...props }) {
   return (
-    <div>
-      <label className="block text-sm font-medium text-stone-700 mb-1.5">{label}</label>
-      <div className="relative flex items-center">
-        <div className="absolute left-3.5 text-stone-400 pointer-events-none">
-          <Icon size={16} />
-        </div>
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-semibold text-white/70 uppercase tracking-widest">
+          {label}
+        </label>
+        {hint && <span className="text-xs text-white/40">{hint}</span>}
+        {right}
+      </div>
+      <div className="relative">
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
+          <Icon size={15} />
+        </span>
         <input
           {...props}
-          className="w-full pl-10 pr-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:bg-white focus:outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/20 transition-all"
+          className="w-full bg-white/10 border border-white/20 rounded-xl pl-10 pr-4 py-3.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-gold focus:bg-white/15 transition-all"
         />
       </div>
+    </div>
+  )
+}
+
+/* ─── animated background shapes ─── */
+function BgShapes() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      <div className="absolute -top-32 -left-32 w-96 h-96 bg-gold/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute top-1/2 -right-32 w-80 h-80 bg-terracotta/30 rounded-full blur-3xl animate-pulse [animation-delay:1s]" />
+      <div className="absolute -bottom-32 left-1/3 w-72 h-72 bg-orange-900/40 rounded-full blur-3xl animate-pulse [animation-delay:2s]" />
+      {/* Dot grid */}
+      <div
+        className="absolute inset-0 opacity-[0.07]"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+          backgroundSize: '30px 30px',
+        }}
+      />
     </div>
   )
 }
@@ -59,282 +80,238 @@ export default function Login() {
     try {
       if (mode === 'login') {
         const { error: err } = await supabase.auth.signInWithPassword({ email, password })
-        if (err) { setError(t('login_error')); return }
+        if (err) {
+          setError(err.message.includes('Invalid') ? 'Incorrect email or password.' : err.message)
+          return
+        }
         navigate('/dashboard')
       } else {
-        const { data, error: err } = await supabase.auth.signUp({ email, password })
-        if (err) { setError(t('register_error')); return }
-        if (data.user) {
-          await supabase.from('agents').insert({
+        // Sign up
+        const { data, error: signUpErr } = await supabase.auth.signUp({ email, password })
+        if (signUpErr) {
+          setError(signUpErr.message)
+          return
+        }
+
+        // Insert agent profile — works even before email confirmation
+        if (data?.user?.id) {
+          const { error: agentErr } = await supabase.from('agents').upsert({
             id: data.user.id,
             full_name: fullName,
-            phone,
+            phone: phone.replace(/\D/g, ''),
             agency_name: agencyName || null,
-            whatsapp: phone,
+            whatsapp: phone.replace(/\D/g, ''),
           })
+          // non-fatal — agent row can be created on first login if this fails
+          if (agentErr) console.warn('Agent profile insert:', agentErr.message)
         }
-        setSuccess('Account created! Please check your email to confirm, then sign in.')
-        switchMode('login')
+
+        // If session exists → auto-confirmed, go straight to dashboard
+        if (data?.session) {
+          navigate('/dashboard')
+        } else {
+          setSuccess('Account created! Check your email for a confirmation link, then sign in.')
+          switchMode('login')
+        }
       }
+    } catch (e) {
+      setError('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
+  const isLogin = mode === 'login'
+
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen bg-gradient-to-br from-stone-950 via-[#5a1208] to-stone-900 flex flex-col items-center justify-center p-4 relative">
+      <BgShapes />
 
-      {/* ── Left branded panel (desktop only) ── */}
-      <div className="hidden lg:flex lg:w-1/2 relative flex-col overflow-hidden">
-        {/* Background photo */}
-        <img
-          src={HERO_PHOTO}
-          alt="Luxury property"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        {/* Dark gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-stone-900/90 via-terracotta/70 to-stone-900/80" />
-
-        {/* Dot pattern */}
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: 'radial-gradient(circle at 1.5px 1.5px, white 1px, transparent 0)',
-            backgroundSize: '28px 28px',
-          }}
-        />
-
-        {/* Content */}
-        <div className="relative z-10 flex flex-col h-full p-10">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.svg" alt="EthioHomes" className="h-9 w-auto brightness-0 invert" />
-          </Link>
-
-          {/* Center content */}
-          <div className="flex-1 flex flex-col justify-center">
-            <h2 className="font-display text-4xl font-bold text-white leading-tight mb-4">
-              Ethiopia's Premier<br />Property Marketplace
-            </h2>
-            <p className="text-white/70 text-base mb-10 leading-relaxed">
-              Connect with verified agents, browse thousands of listings, and find your perfect home across Ethiopia.
-            </p>
-
-            {/* Stats */}
-            <div className="flex gap-4 mb-10">
-              {STATS.map((s) => (
-                <div key={s.label} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-4 py-3 text-center">
-                  <div className="text-2xl font-bold text-white">{s.value}</div>
-                  <div className="text-xs text-white/60 mt-0.5">{s.label}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Testimonial */}
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-5">
-              <p className="text-white/90 text-sm leading-relaxed italic mb-3">
-                "Found my dream apartment in Bole within a week. The WhatsApp contact made it so easy to reach the agent directly — no delays!"
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gold/80 flex items-center justify-center text-white font-bold text-sm">
-                  S
-                </div>
-                <div>
-                  <div className="text-white text-sm font-semibold">Sara Tadesse</div>
-                  <div className="text-white/50 text-xs">Addis Ababa · Tenant</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <p className="text-white/40 text-xs">
-            Trusted by agents and home seekers across Ethiopia
-          </p>
-        </div>
+      {/* Back link */}
+      <div className="absolute top-5 left-5 z-10">
+        <Link
+          to="/"
+          className="flex items-center gap-1.5 text-white/50 hover:text-white text-xs font-medium transition-colors"
+        >
+          <Home size={13} /> EthioHomes
+        </Link>
       </div>
 
-      {/* ── Right form panel ── */}
-      <div className="w-full lg:w-1/2 flex flex-col">
+      {/* Card */}
+      <div className="relative z-10 w-full max-w-md">
 
-        {/* Mobile header */}
-        <div className="lg:hidden bg-terracotta px-6 py-8">
-          <Link to="/">
-            <img src="/logo.svg" alt="EthioHomes" className="h-9 w-auto brightness-0 invert mb-3" />
-          </Link>
-          <p className="text-white/80 text-sm">Ethiopia's Premier Property Marketplace</p>
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <img src="/logo.svg" alt="EthioHomes" className="h-10 w-auto mx-auto mb-4 brightness-0 invert" />
+          <h1 className="font-display text-3xl font-bold text-white">
+            {isLogin ? 'Welcome back' : 'Join EthioHomes'}
+          </h1>
+          <p className="text-white/50 text-sm mt-1.5">
+            {isLogin
+              ? 'Sign in to manage your listings'
+              : 'Create your agent account — it\'s free'}
+          </p>
         </div>
 
-        {/* Form area */}
-        <div className="flex-1 flex items-center justify-center px-6 py-10 bg-white">
-          <div className="w-full max-w-md">
+        {/* Glass card */}
+        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-2xl">
 
-            {/* Heading */}
-            <div className="mb-8">
-              <h1 className="font-display text-3xl font-bold text-stone-900 mb-1">
-                {mode === 'login' ? 'Welcome back' : 'Create account'}
-              </h1>
-              <p className="text-stone-500 text-sm">
-                {mode === 'login'
-                  ? 'Sign in to manage your listings.'
-                  : 'Register as an agent and start posting properties.'}
-              </p>
-            </div>
-
-            {/* Tab toggle */}
-            <div className="relative flex bg-stone-100 rounded-xl p-1 mb-8">
-              <div
-                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-lg shadow-sm transition-transform duration-300 ${
-                  mode === 'register' ? 'translate-x-[calc(100%+2px)]' : 'translate-x-0'
-                }`}
-              />
+          {/* Tab toggle */}
+          <div className="flex bg-white/10 rounded-2xl p-1 mb-7">
+            {['login', 'register'].map((m) => (
               <button
-                onClick={() => switchMode('login')}
-                className={`relative flex-1 py-2 text-sm font-semibold rounded-lg transition-colors z-10 ${
-                  mode === 'login' ? 'text-stone-900' : 'text-stone-500'
+                key={m}
+                onClick={() => switchMode(m)}
+                className={`flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
+                  mode === m
+                    ? 'bg-terracotta text-white shadow-lg shadow-terracotta/30'
+                    : 'text-white/50 hover:text-white'
                 }`}
               >
-                Sign In
+                {m === 'login' ? 'Sign In' : 'Register'}
               </button>
-              <button
-                onClick={() => switchMode('register')}
-                className={`relative flex-1 py-2 text-sm font-semibold rounded-lg transition-colors z-10 ${
-                  mode === 'register' ? 'text-stone-900' : 'text-stone-500'
-                }`}
-              >
-                Register
-              </button>
+            ))}
+          </div>
+
+          {/* Alert */}
+          {error && (
+            <div className="flex items-start gap-2.5 bg-red-500/20 border border-red-400/30 text-red-300 rounded-xl px-4 py-3 text-sm mb-5">
+              <span className="mt-0.5 shrink-0">⚠</span> {error}
             </div>
+          )}
+          {success && (
+            <div className="flex items-start gap-2.5 bg-green-500/20 border border-green-400/30 text-green-300 rounded-xl px-4 py-3 text-sm mb-5">
+              <span className="mt-0.5 shrink-0">✓</span> {success}
+            </div>
+          )}
 
-            {/* Alerts */}
-            {error && (
-              <div className="border-l-4 border-red-400 bg-red-50 text-red-700 rounded-xl px-4 py-3 text-sm mb-5">
-                {error}
-              </div>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <>
+                <Field
+                  icon={User}
+                  label="Full Name"
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Abebe Girma"
+                />
+                <Field
+                  icon={Phone}
+                  label="Phone Number"
+                  hint="without country code"
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="912 345 678"
+                />
+                <Field
+                  icon={Building2}
+                  label="Agency Name"
+                  hint="optional"
+                  type="text"
+                  value={agencyName}
+                  onChange={(e) => setAgencyName(e.target.value)}
+                  placeholder="Addis Real Estate"
+                />
+              </>
             )}
-            {success && (
-              <div className="border-l-4 border-green-400 bg-green-50 text-green-700 rounded-xl px-4 py-3 text-sm mb-5">
-                {success}
-              </div>
-            )}
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {mode === 'register' && (
-                <>
-                  <InputField
-                    icon={User}
-                    label={t('full_name')}
-                    type="text"
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Abebe Girma"
-                  />
-                  <InputField
-                    icon={Phone}
-                    label={t('phone')}
-                    type="tel"
-                    required
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="912345678"
-                  />
-                  <InputField
-                    icon={Building2}
-                    label={t('agency_name')}
-                    type="text"
-                    value={agencyName}
-                    onChange={(e) => setAgencyName(e.target.value)}
-                    placeholder="Addis Real Estate (optional)"
-                  />
-                </>
-              )}
+            <Field
+              icon={Mail}
+              label="Email Address"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="agent@example.com"
+            />
 
-              <InputField
-                icon={Mail}
-                label={t('email')}
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="agent@example.com"
-              />
-
-              {/* Password with toggle */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-sm font-medium text-stone-700">{t('password')}</label>
-                  {mode === 'login' && (
-                    <button type="button" className="text-xs text-terracotta hover:underline">
-                      Forgot password?
-                    </button>
-                  )}
-                </div>
-                <div className="relative flex items-center">
-                  <div className="absolute left-3.5 text-stone-400 pointer-events-none">
-                    <Lock size={16} />
-                  </div>
-                  <input
-                    type={showPw ? 'text' : 'password'}
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-10 pr-10 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:bg-white focus:outline-none focus:border-terracotta focus:ring-2 focus:ring-terracotta/20 transition-all"
-                  />
+            {/* Password */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-white/70 uppercase tracking-widest">
+                  Password
+                </label>
+                {isLogin && (
                   <button
                     type="button"
-                    onClick={() => setShowPw(!showPw)}
-                    className="absolute right-3.5 text-stone-400 hover:text-stone-600 transition-colors"
+                    className="text-xs text-gold/80 hover:text-gold transition-colors"
                   >
-                    {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                    Forgot password?
                   </button>
-                </div>
-              </div>
-
-              {/* Submit */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-terracotta hover:bg-orange-800 disabled:opacity-60 text-white font-semibold py-3.5 rounded-xl transition-colors mt-2 text-sm"
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                    </svg>
-                    {t('loading')}
-                  </span>
-                ) : (
-                  <>
-                    {mode === 'login' ? t('login_submit') : t('register_submit')}
-                    <ArrowRight size={16} />
-                  </>
                 )}
-              </button>
-            </form>
+              </div>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">
+                  <Lock size={15} />
+                </span>
+                <input
+                  type={showPw ? 'text' : 'password'}
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Min. 6 characters"
+                  className="w-full bg-white/10 border border-white/20 rounded-xl pl-10 pr-12 py-3.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-gold focus:bg-white/15 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw(!showPw)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                >
+                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
 
-            {/* Switch mode */}
-            <p className="text-center text-sm text-stone-500 mt-6">
-              {mode === 'login' ? t('no_account') : t('have_account')}
-              {' '}
-              <button
-                onClick={() => switchMode(mode === 'login' ? 'register' : 'login')}
-                className="text-terracotta font-semibold hover:underline"
-              >
-                {mode === 'login' ? 'Register →' : 'Sign In →'}
-              </button>
-            </p>
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 bg-terracotta hover:bg-orange-800 disabled:opacity-60 text-white font-bold py-4 rounded-xl transition-all duration-200 shadow-lg shadow-terracotta/30 hover:shadow-terracotta/50 hover:-translate-y-0.5 active:translate-y-0 mt-2 text-sm"
+            >
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                  </svg>
+                  {isLogin ? 'Signing in...' : 'Creating account...'}
+                </>
+              ) : (
+                <>
+                  {isLogin ? 'Sign In' : 'Create Account'}
+                  <ArrowRight size={16} />
+                </>
+              )}
+            </button>
+          </form>
+        </div>
 
-            {/* Back to site */}
-            <p className="text-center mt-4">
-              <Link to="/" className="text-xs text-stone-400 hover:text-stone-600 transition-colors">
-                ← Back to EthioHomes
-              </Link>
-            </p>
-          </div>
+        {/* Switch mode */}
+        <p className="text-center text-sm text-white/40 mt-5">
+          {isLogin ? "Don't have an account?" : 'Already have an account?'}
+          {' '}
+          <button
+            onClick={() => switchMode(isLogin ? 'register' : 'login')}
+            className="text-gold font-semibold hover:text-gold/80 transition-colors"
+          >
+            {isLogin ? 'Register →' : 'Sign In →'}
+          </button>
+        </p>
+
+        {/* Stats */}
+        <div className="flex justify-center gap-6 mt-8 text-center">
+          {[['500+', 'Listings'], ['200+', 'Agents'], ['10+', 'Cities']].map(([val, lbl]) => (
+            <div key={lbl}>
+              <div className="text-white font-bold text-lg">{val}</div>
+              <div className="text-white/40 text-xs">{lbl}</div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
