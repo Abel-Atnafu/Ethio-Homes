@@ -9,6 +9,8 @@ import { useLang } from '../App'
 
 const CITIES = ['Addis Ababa', 'Dire Dawa', 'Bahir Dar', 'Hawassa', 'Adama']
 
+const HERO_BG = 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1600&q=80'
+
 export default function Home() {
   const { t } = useLang()
   const navigate = useNavigate()
@@ -28,16 +30,18 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
 
-      {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-        {/* Background gradient */}
+        <img
+          src={HERO_BG}
+          alt="Ethiopian cityscape"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
         <div
-          className="absolute inset-0 bg-gradient-to-br from-stone-900 via-stone-800 to-terracotta/80"
+          className="absolute inset-0 bg-gradient-to-br from-stone-900/85 via-stone-900/70 to-terracotta/60"
           aria-hidden="true"
         />
-        {/* Decorative pattern */}
         <div
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0 opacity-5"
           style={{
             backgroundImage: `radial-gradient(circle at 2px 2px, #FDF6EC 1px, transparent 0)`,
             backgroundSize: '40px 40px',
@@ -53,9 +57,7 @@ export default function Home() {
             {t('hero_subtitle')}
           </p>
 
-          {/* Search bar */}
           <div className="bg-white rounded-2xl shadow-2xl p-3 flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto">
-            {/* City */}
             <div className="relative flex-1">
               <select
                 value={searchCity}
@@ -70,7 +72,6 @@ export default function Home() {
               <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none" />
             </div>
 
-            {/* Type toggle */}
             <div className="flex rounded-xl overflow-hidden border border-stone-200">
               {['rent', 'sale'].map((type) => (
                 <button
@@ -87,7 +88,6 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Search button */}
             <button
               onClick={handleSearch}
               className="flex items-center justify-center gap-2 bg-terracotta hover:bg-orange-800 text-white font-semibold px-6 py-3 rounded-xl transition-colors"
@@ -98,7 +98,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured listings */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h2 className="font-display text-3xl font-bold text-stone-800 mb-8">
           {t('featured_listings')}
@@ -114,7 +113,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How it works */}
       <section className="bg-stone-50 border-t border-stone-200 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="font-display text-3xl font-bold text-stone-800 text-center mb-12">

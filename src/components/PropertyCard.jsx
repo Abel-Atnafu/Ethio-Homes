@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { BedDouble, Bath, MapPin, MessageCircle } from 'lucide-react'
 import { useLang } from '../App'
+import { PLACEHOLDER } from '../lib/placeholderImages'
 
 function formatPrice(price, period) {
   const formatted = new Intl.NumberFormat('en-ET').format(price)
@@ -31,25 +32,17 @@ export default function PropertyCard({ property }) {
     property_type,
   } = property
 
-  const image = images?.[0] ?? null
+  const image = images?.[0] ?? PLACEHOLDER[property_type] ?? PLACEHOLDER.default
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-stone-100 flex flex-col">
-      {/* Image */}
+    <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-stone-100 flex flex-col">
       <div className="relative aspect-[4/3] bg-stone-100 overflow-hidden">
-        {image ? (
-          <img
-            src={image}
-            alt={title}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-stone-200">
-            <span className="text-stone-400 text-sm">{t('no_images')}</span>
-          </div>
-        )}
-        {/* Badge */}
+        <img
+          src={image}
+          alt={title}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          loading="lazy"
+        />
         <span className={`absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full text-white ${
           price_type === 'rent' ? 'bg-terracotta' : 'bg-stone-800'
         }`}>
@@ -57,25 +50,20 @@ export default function PropertyCard({ property }) {
         </span>
       </div>
 
-      {/* Content */}
       <div className="p-4 flex flex-col gap-3 flex-1">
-        {/* Price */}
         <div className="text-gold font-bold text-lg leading-tight">
           {formatPrice(price, price_period)}
         </div>
 
-        {/* Title */}
         <h3 className="font-display font-semibold text-stone-800 text-base leading-snug line-clamp-2">
           {title}
         </h3>
 
-        {/* Location */}
         <div className="flex items-center gap-1 text-stone-500 text-sm">
           <MapPin size={13} className="shrink-0" />
           <span className="truncate">{subcity ? `${subcity}, ${city}` : city}</span>
         </div>
 
-        {/* Bed / Bath */}
         {(bedrooms || bathrooms) && (
           <div className="flex items-center gap-4 text-stone-600 text-sm">
             {bedrooms && (
@@ -91,7 +79,6 @@ export default function PropertyCard({ property }) {
           </div>
         )}
 
-        {/* Actions */}
         <div className="flex gap-2 mt-auto pt-2">
           <a
             href={whatsappUrl(agent_phone, title)}
