@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { BedDouble, Bath, MapPin, MessageCircle } from 'lucide-react'
 import { useLang } from '../App'
+import { PLACEHOLDER } from '../lib/placeholderImages'
 
 function formatPrice(price, period) {
   const formatted = new Intl.NumberFormat('en-ET').format(price)
@@ -31,24 +32,18 @@ export default function PropertyCard({ property }) {
     property_type,
   } = property
 
-  const image = images?.[0] ?? null
+  const image = images?.[0] ?? PLACEHOLDER[property_type] ?? PLACEHOLDER.default
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-stone-100 flex flex-col">
+    <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-stone-100 flex flex-col">
       {/* Image */}
       <div className="relative aspect-[4/3] bg-stone-100 overflow-hidden">
-        {image ? (
-          <img
-            src={image}
-            alt={title}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-stone-200">
-            <span className="text-stone-400 text-sm">{t('no_images')}</span>
-          </div>
-        )}
+        <img
+          src={image}
+          alt={title}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          loading="lazy"
+        />
         {/* Badge */}
         <span className={`absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-full text-white ${
           price_type === 'rent' ? 'bg-terracotta' : 'bg-stone-800'

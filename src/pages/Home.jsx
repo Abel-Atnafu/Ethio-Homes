@@ -9,6 +9,8 @@ import { useLang } from '../App'
 
 const CITIES = ['Addis Ababa', 'Dire Dawa', 'Bahir Dar', 'Hawassa', 'Adama']
 
+const HERO_BG = 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1600&q=80'
+
 export default function Home() {
   const { t } = useLang()
   const navigate = useNavigate()
@@ -30,14 +32,20 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-        {/* Background gradient */}
+        {/* Background photo */}
+        <img
+          src={HERO_BG}
+          alt="Ethiopian cityscape"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Dark overlay */}
         <div
-          className="absolute inset-0 bg-gradient-to-br from-stone-900 via-stone-800 to-terracotta/80"
+          className="absolute inset-0 bg-gradient-to-br from-stone-900/85 via-stone-900/70 to-terracotta/60"
           aria-hidden="true"
         />
         {/* Decorative pattern */}
         <div
-          className="absolute inset-0 opacity-10"
+          className="absolute inset-0 opacity-5"
           style={{
             backgroundImage: `radial-gradient(circle at 2px 2px, #FDF6EC 1px, transparent 0)`,
             backgroundSize: '40px 40px',
