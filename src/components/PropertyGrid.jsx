@@ -1,5 +1,6 @@
+import { Building2 } from 'lucide-react'
 import PropertyCard from './PropertyCard'
-import { useLang } from '../App'
+import { useLang } from '../contexts/LangContext'
 
 function SkeletonCard() {
   return (
@@ -41,8 +42,10 @@ export default function PropertyGrid({ properties, loading, error }) {
 
   if (!properties.length) {
     return (
-      <div className="text-center py-16 text-stone-500">
-        <p className="text-lg">{t('no_listings')}</p>
+      <div className="text-center py-20">
+        <Building2 size={48} className="mx-auto text-stone-300 mb-4" />
+        <p className="text-stone-600 text-lg font-semibold">{t('no_listings')}</p>
+        <p className="text-stone-400 text-sm mt-1">{t('no_listings_hint')}</p>
       </div>
     )
   }

@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { BedDouble, Bath, Maximize2, MapPin, ChevronLeft, ChevronRight, MessageCircle, Phone } from 'lucide-react'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
+import { BedDouble, Bath, Maximize2, MapPin, ChevronLeft, ChevronRight, MessageCircle, Phone, Home } from 'lucide-react'
+import { useLang } from '../contexts/LangContext'
+import { useProperties } from '../hooks/useProperties'
+import { supabase } from '../lib/supabase'
+import PageWrapper from '../components/layout/PageWrapper'
 import MapView from '../components/MapView'
 import AgentContactModal from '../components/AgentContactModal'
 import PropertyGrid from '../components/PropertyGrid'
-import { useProperties } from '../hooks/useProperties'
-import { supabase } from '../lib/supabase'
-import { useLang } from '../App'
 
 function whatsappUrl(phone, title) {
   const msg = encodeURIComponent(`Hi, I'm interested in your listing: "${title}" on EthioHomes.`)
@@ -22,15 +21,35 @@ function formatPrice(price, period) {
 }
 
 const AMENITY_KEYS = {
-  parking: 'amenity_parking',
-  generator: 'amenity_generator',
-  guard: 'amenity_guard',
-  water_tank: 'amenity_water_tank',
-  elevator: 'amenity_elevator',
-  gym: 'amenity_gym',
-  pool: 'amenity_pool',
-  internet: 'amenity_internet',
-  furnished: 'amenity_furnished',
+  parking: 'amenity_parking', generator: 'amenity_generator', guard: 'amenity_guard',
+  water_tank: 'amenity_water_tank', elevator: 'amenity_elevator', gym: 'amenity_gym',
+  pool: 'amenity_pool', internet: 'amenity_internet', furnished: 'amenity_furnished',
+}
+
+function LoadingSkeleton() {
+  return (
+    <PageWrapper>
+      <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
+        <div className="h-4 w-32 bg-stone-200 rounded mb-6" />
+        <div className="aspect-video bg-stone-200 rounded-2xl mb-8" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="h-6 w-24 bg-stone-200 rounded-full" />
+            <div className="h-8 w-3/4 bg-stone-200 rounded" />
+            <div className="h-4 w-1/2 bg-stone-200 rounded" />
+            <div className="h-6 w-1/3 bg-stone-200 rounded" />
+            <div className="flex gap-6 py-4 border-t border-b border-stone-100">
+              {[1, 2, 3].map((i) => <div key={i} className="h-6 w-20 bg-stone-200 rounded" />)}
+            </div>
+            <div className="space-y-2">
+              {[1, 2, 3, 4].map((i) => <div key={i} className="h-4 bg-stone-200 rounded" style={{ width: `${100 - i * 10}%` }} />)}
+            </div>
+          </div>
+          <div className="h-64 bg-stone-200 rounded-2xl" />
+        </div>
+      </div>
+    </PageWrapper>
+  )
 }
 
 export default function PropertyDetail() {
@@ -74,28 +93,27 @@ export default function PropertyDetail() {
       : {}
   )
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-stone-400 animate-pulse">{t('loading')}</div>
-        </div>
-        <Footer />
-      </div>
-    )
-  }
+  if (loading) return <LoadingSkeleton />
 
   if (!property) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center flex-col gap-4">
-          <p className="text-stone-500">Property not found.</p>
-          <Link to="/listings" className="text-terracotta hover:underline text-sm">← Back to listings</Link>
+      <PageWrapper>
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] gap-5 px-4">
+          <div className="w-20 h-20 bg-stone-100 rounded-2xl flex items-center justify-center">
+            <Home size={36} className="text-stone-400" />
+          </div>
+          <div className="text-center">
+            <h2 className="font-display text-2xl font-bold text-stone-700 mb-2">Property not found</h2>
+            <p className="text-stone-400 text-sm mb-6">This listing may have been removed or the URL is incorrect.</p>
+            <Link
+              to="/listings"
+              className="inline-flex items-center gap-2 bg-terracotta text-white font-semibold px-6 py-2.5 rounded-xl hover:bg-orange-800 transition-colors text-sm"
+            >
+              ← Browse listings
+            </Link>
+          </div>
         </div>
-        <Footer />
-      </div>
+      </PageWrapper>
     )
   }
 
@@ -104,17 +122,17 @@ export default function PropertyDetail() {
   const nextImg = () => setImgIndex((i) => (i + 1) % images.length)
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-        {/* Back */}
-        <Link to="/listings" className="inline-flex items-center gap-1 text-sm text-stone-500 hover:text-terracotta mb-6 transition-colors">
+    <PageWrapper>
+      <div className="max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        <Link
+          to="/listings"
+          className="inline-flex items-center gap-1 text-sm text-stone-500 hover:text-terracotta mb-6 transition-colors"
+        >
           <ChevronLeft size={16} /> Back to listings
         </Link>
 
         {/* Image carousel */}
-        <div className="relative rounded-2xl overflow-hidden bg-stone-200 aspect-video mb-8">
+        <div className="relative rounded-2xl overflow-hidden bg-stone-200 aspect-video mb-8 shadow-lg">
           {images.length > 0 ? (
             <>
               <img
@@ -126,24 +144,27 @@ export default function PropertyDetail() {
                 <>
                   <button
                     onClick={prevImg}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 transition-colors"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2.5 transition-colors"
                   >
                     <ChevronLeft size={20} />
                   </button>
                   <button
                     onClick={nextImg}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2.5 transition-colors"
                   >
                     <ChevronRight size={20} />
                   </button>
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
                     {images.map((_, i) => (
                       <button
                         key={i}
                         onClick={() => setImgIndex(i)}
-                        className={`w-2 h-2 rounded-full transition-colors ${i === imgIndex ? 'bg-white' : 'bg-white/50'}`}
+                        className={`w-2 h-2 rounded-full transition-all ${i === imgIndex ? 'bg-white scale-125' : 'bg-white/50'}`}
                       />
                     ))}
+                  </div>
+                  <div className="absolute top-4 right-4 bg-black/50 text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                    {imgIndex + 1} / {images.length}
                   </div>
                 </>
               )}
@@ -158,7 +179,6 @@ export default function PropertyDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main info */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Header */}
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className={`text-xs font-bold px-2.5 py-1 rounded-full text-white ${
@@ -166,16 +186,16 @@ export default function PropertyDetail() {
                 }`}>
                   {property.price_type === 'rent' ? t('for_rent') : t('for_sale')}
                 </span>
-                <span className="text-xs text-stone-400 capitalize">{property.property_type}</span>
+                <span className="text-xs text-stone-400 capitalize bg-stone-100 px-2.5 py-1 rounded-full">
+                  {property.property_type}
+                </span>
               </div>
               <h1 className="font-display text-2xl sm:text-3xl font-bold text-stone-800 leading-tight mb-2">
                 {property.title}
               </h1>
-              <div className="flex items-center gap-1 text-stone-500 text-sm mb-3">
-                <MapPin size={14} />
-                <span>
-                  {[property.woreda, property.subcity, property.city].filter(Boolean).join(', ')}
-                </span>
+              <div className="flex items-center gap-1.5 text-stone-500 text-sm mb-3">
+                <MapPin size={14} className="text-terracotta shrink-0" />
+                <span>{[property.woreda, property.subcity, property.city].filter(Boolean).join(', ')}</span>
               </div>
               <div className="text-gold font-bold text-2xl">
                 {formatPrice(property.price, property.price_period)}
@@ -183,7 +203,7 @@ export default function PropertyDetail() {
             </div>
 
             {/* Stats */}
-            <div className="flex flex-wrap gap-6 py-4 border-t border-b border-stone-100">
+            <div className="flex flex-wrap gap-6 py-5 border-t border-b border-stone-100">
               {property.bedrooms && (
                 <div className="flex items-center gap-2 text-stone-600">
                   <BedDouble size={18} className="text-terracotta" />
@@ -210,7 +230,7 @@ export default function PropertyDetail() {
             {/* Description */}
             {property.description && (
               <div>
-                <h3 className="font-display font-semibold text-xl text-stone-800 mb-2">{t('description')}</h3>
+                <h3 className="font-display font-semibold text-xl text-stone-800 mb-3">{t('description')}</h3>
                 <p className="text-stone-600 leading-relaxed">{property.description}</p>
               </div>
             )}
@@ -221,7 +241,7 @@ export default function PropertyDetail() {
                 <h3 className="font-display font-semibold text-xl text-stone-800 mb-3">{t('amenities')}</h3>
                 <div className="flex flex-wrap gap-2">
                   {property.amenities.map((a) => (
-                    <span key={a} className="bg-terracotta/10 text-terracotta text-sm font-medium px-3 py-1.5 rounded-full">
+                    <span key={a} className="bg-terracotta/10 text-terracotta text-sm font-medium px-3.5 py-1.5 rounded-full">
                       {t(AMENITY_KEYS[a]) || a}
                     </span>
                   ))}
@@ -229,26 +249,29 @@ export default function PropertyDetail() {
               </div>
             )}
 
-            {/* Map */}
             <MapView lat={property.lat} lng={property.lng} title={property.title} />
           </div>
 
           {/* Agent card */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 sticky top-24">
-              <h3 className="font-semibold text-stone-800 mb-4 text-sm uppercase tracking-wide">{t('contact_agent')}</h3>
+              <h3 className="font-semibold text-stone-500 mb-4 text-xs uppercase tracking-widest">
+                {t('contact_agent')}
+              </h3>
 
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3 mb-5">
                 {agent?.avatar_url ? (
-                  <img src={agent.avatar_url} alt={agent?.full_name || property.agent_name} className="w-12 h-12 rounded-full object-cover" />
+                  <img src={agent.avatar_url} alt={agent?.full_name} className="w-12 h-12 rounded-full object-cover" />
                 ) : (
                   <div className="w-12 h-12 rounded-full bg-terracotta/10 flex items-center justify-center text-terracotta font-bold text-lg">
                     {(agent?.full_name || property.agent_name)?.[0] ?? 'A'}
                   </div>
                 )}
                 <div>
-                  <p className="font-semibold text-stone-800">{agent?.full_name || property.agent_name}</p>
-                  {agent?.agency_name && <p className="text-xs text-stone-500">{agent.agency_name}</p>}
+                  <p className="font-semibold text-stone-800 text-sm">{agent?.full_name || property.agent_name}</p>
+                  {agent?.agency_name && (
+                    <p className="text-xs text-stone-500">{agent.agency_name}</p>
+                  )}
                 </div>
               </div>
 
@@ -257,9 +280,9 @@ export default function PropertyDetail() {
                   href={whatsappUrl(agent?.whatsapp || agent?.phone || property.agent_phone, property.title)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition-colors w-full"
+                  className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition-colors w-full text-sm"
                 >
-                  <MessageCircle size={18} /> {t('whatsapp')}
+                  <MessageCircle size={17} /> {t('whatsapp')}
                 </a>
                 <button
                   onClick={() => setShowModal(true)}
@@ -272,16 +295,13 @@ export default function PropertyDetail() {
           </div>
         </div>
 
-        {/* Similar properties */}
         {similar.length > 0 && (
-          <section className="mt-12">
+          <section className="mt-14">
             <h2 className="font-display text-2xl font-bold text-stone-800 mb-6">{t('similar_properties')}</h2>
             <PropertyGrid properties={similar} loading={simLoading} />
           </section>
         )}
-      </main>
-
-      <Footer />
+      </div>
 
       {showModal && (
         <AgentContactModal
@@ -290,6 +310,6 @@ export default function PropertyDetail() {
           onClose={() => setShowModal(false)}
         />
       )}
-    </div>
+    </PageWrapper>
   )
 }

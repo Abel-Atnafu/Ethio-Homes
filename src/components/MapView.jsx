@@ -1,4 +1,4 @@
-import { useLang } from '../App'
+import { useLang } from '../contexts/LangContext'
 
 export default function MapView({ lat, lng, title }) {
   const { t } = useLang()
