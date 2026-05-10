@@ -87,7 +87,13 @@ export default function Login() {
         navigate('/dashboard')
       } else {
         // Sign up
-        const { data, error: signUpErr } = await supabase.auth.signUp({ email, password })
+        const { data, error: signUpErr } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/dashboard`,
+          },
+        })
         if (signUpErr) {
           setError(signUpErr.message)
           return
